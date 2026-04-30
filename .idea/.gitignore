@@ -1,0 +1,40 @@
+# PyCharm
+.idea/
+*.xml
+*.iml
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Environment variables (API keys etc)
+.env
+*.env
+
+# Mac junk
+.DS_Store
+
+# AI model cache (huge files, no need to upload)
+*.pt
+*.bin
+*.ckpt
+~/.cache/huggingface/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Uploaded test files (don't commit random PDFs/docs)
+uploads/
+test_files/
+
+# Output files
+outputs/
+*.pdf
+
+

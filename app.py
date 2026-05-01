@@ -30,8 +30,18 @@ if uploaded_file is not None:
 
             st.session_state["extracted_text"] = text
 
+
         except Exception as e:
             st.error(f"Something went wrong with the extraction: {e}")
 
         finally:
             os.unlink(tmp_path)  # Clean up temp file
+
+if "extracted_text" in st.session_state:
+    if st.button("✨ Summarize"):
+        with st.spinner("Summarizing... this may take a minute"):
+            from summarizer import summarize
+            summary = summarize(st.session_state["extracted_text"])
+            st.subheader("📝 Summary")
+            st.write(summary)
+            st.session_state["summary"] = summary

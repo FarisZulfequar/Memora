@@ -1,7 +1,7 @@
-from transformers import pipeline
+from transformers import BartForConditionalGeneration, BartTokenizer
 
-# Load the model once (takes 30-60 seconds first time, downloads ~1.6GB)
-summarizer = pipeline("text2text-generation", model="facebook/bart-large-cnn")
+tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
+model = BartForConditionalGeneration.from_pretrained("facebook/bart-large-cnn")
 
 def chunk_text(text, max_chars=1000):
     """Split text into chunks so it fits within the model's token limit."""
@@ -29,6 +29,9 @@ def summarize(text):
 
     for i, chunk in enumerate(chunks):
         print(f"Summarizing chunk {i+1}/{len(chunks)}...")
-        result = summarizer(chunk, max_length=150, min_length=40, do_sample=False)
-        summaries.append(result[0]["generated_text"])
+        inputs = tokenizer(chunk, return_tensors="pt", max_length=1024, truncation=True)
+        summary_ids = model.generate(inputs["input_ids"], max_length=150, min_length=40, do_sample=False)
+        result = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+        summaries.append(result)
+
     return " ".join(summaries)

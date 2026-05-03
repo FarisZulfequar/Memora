@@ -6,10 +6,14 @@ from summarizer import summarize, export_summary_pdf
 from quiz_generator import generate_mcq_quiz
 
 def load_css(file_path):
-    with open(file_path) as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    try:
+        with open(file_path) as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.warning("styles.css not found - running without custom styles")
 
 load_css("styles.css")
+
 st.set_page_config(page_title="Memora", page_icon="📚", layout="wide")
 st.title("📚 Memora")
 st.subheader("Upload a file (pdf, docx, png, jpg, jpeg), and we'll summarize and quiz you!")
@@ -27,52 +31,71 @@ if uploaded_file is not None:
         tmp_path = tmp.name
 
     # Outputs a spinner with a temporary message while executing the block
-    with st.spinner("Loading. Extracting the text"):
+    with st.spinner("Loading. Extracting the text..."):
         try:
             text = extract_text(tmp_path)
-            st.success("Text extracted went good")
 
-            with st.expander("View extracted text"):
-                st.write(text)
+            # Make sure we actually got text back
+            if not text or not text.strip():
+                st.error("No text could be extracted from this file. Try a different file.")
+            else:
+                st.success("Text extracted successfully!")
 
-            st.session_state["extracted_text"] = text
+                with st.expander("View extracted text"):
+                    st.write(text)
+
+                st.session_state["extracted_text"] = text
+
         except Exception as e:
             st.error(f"Something went wrong with the extraction: {e}")
         finally:
-            os.unlink(tmp_path)  # Clean up temp file
+            # Always clean up the temp file even if something crashes
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
 
 if "extracted_text" in st.session_state:
-    # If the button was pressed, shows a spinner, executes the block and summarizes the extracted text
     if st.button("✨ Summarize"):
         with st.spinner("Summarizing... this may take a minute"):
             summary = summarize(st.session_state["extracted_text"])
-            st.subheader("📝 Summary")
-            st.write(summary)
-            st.session_state["summary"] = summary
 
+            # Only save and display if summarization actually worked
+            if summary:
+                st.subheader("📝 Summary")
+                st.write(summary)
+                st.session_state["summary"] = summary
+            else:
+                st.error("Summarization returned empty. Try again.")
 
 if "summary" in st.session_state:
     pdf_bytes = export_summary_pdf(st.session_state["summary"])
-    st.download_button(
-        label="📄 Download Summary as PDF",
-        data=bytes(pdf_bytes),
-        file_name="summary.pdf",
-        mime="application/pdf"
-    )
+
+    # Only show download button if PDF was generated successfully
+    if pdf_bytes:
+        st.download_button(
+            label="📄 Download Summary as PDF",
+            data=bytes(pdf_bytes),
+            file_name="summary.pdf",
+            mime="application/pdf"
+        )
 
 if "summary" in st.session_state:
     st.divider()
     if st.button("📝 Generate Quiz"):
         with st.spinner("Generating quiz questions..."):
             questions = generate_mcq_quiz(st.session_state["summary"])
-            st.session_state["questions"] = questions
 
-if "questions" in st.session_state:
+            # Only save if we actually got questions back
+            if questions:
+                st.session_state["questions"] = questions
+            else:
+                st.error("No questions were generated. Try again.")
+
+if "questions" in st.session_state and st.session_state["questions"]:
     st.subheader("🧠 Quiz Time!")
     user_answers = {}
 
     for index, question in enumerate(st.session_state["questions"]):
-        # Displays the question as a radio componenet and displays each response
+        # Displays the question as a radio component and displays each response
         st.markdown(f"**Q{index + 1}: {question['question']}**")
         user_answers[index] = st.radio(
             f"Select answer for Q{index + 1}",
@@ -92,6 +115,13 @@ if "questions" in st.session_state:
                 st.success(f"Q{index + 1}: ✅ Correct!")
                 score += 1
             else:
-                st.error(f"Q{index + 1}: ❌ Wrong: Correct Answer: {correct}) {question['options'].get(correct, '')}")
+                st.error(f"Q{index + 1}: ❌ Wrong — Correct Answer: {correct}) {question['options'].get(correct, '')}")
 
-        st.markdown(f"###🎯 Score: {score}/{len(st.session_state['questions'])}")
+        st.markdown(f"### 🎯 Score: {score}/{len(st.session_state['questions'])}")
+
+# Footer
+st.divider()
+st.markdown(
+    "<p style='text-align: center;'>Made by Faris Zulfequar 👨‍💻</p>",
+    unsafe_allow_html=True
+)

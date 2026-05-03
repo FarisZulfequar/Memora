@@ -2,6 +2,7 @@ import os
 import json
 from dotenv import load_dotenv
 import google.generativeai as genai
+import streamlit as st
 
 load_dotenv()
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -23,14 +24,30 @@ Return ONLY a JSON array, no other text, in this exact format:
 
 Text: {summary}"""
 
-    response = model.generate_content(prompt)
-    raw = response.text.strip()
+    try:
+        response = model.generate_content(prompt)
+        raw = response.text.strip()
 
-    # Strip markdown code fences if Gemini adds them
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
+        # Strip markdown code fences if Gemini adds them
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
 
-    questions = json.loads(raw)
-    return questions
+        questions = json.loads(raw)
+
+        # Make sure we actually got a list back
+        if not isinstance(questions, list) or len(questions) == 0:
+            raise ValueError("Gemini returned empty or invalid questions")
+
+        return questions
+
+    except json.JSONDecodeError:
+        st.error("Gemini returned invalid JSON. Try generating again.")
+        return []
+    except ValueError as e:
+        st.error(f"Quiz generation failed: {e}")
+        return []
+    except Exception as e:
+        st.error(f"Something went wrong: {e}")
+        return []

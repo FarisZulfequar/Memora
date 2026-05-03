@@ -7,7 +7,7 @@ load_dotenv()
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
-def generate_mcq_quiz(summary, num_questions=5):
+def generate_mcq_quiz(summary, num_questions=10):
     """Generate quiz questions from a summary using Gemini."""
 
     prompt = f"""Based on this text, generate {num_questions} multiple choice questions.

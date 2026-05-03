@@ -32,13 +32,13 @@ def extract_from_image(file_path):
 
 def extract_text(file_path):
     """Detect the type of file sent and extract text."""
-
     if file_path.endswith(".pdf"):
         return extract_from_pdf(file_path)
     elif file_path.endswith(".docx"):
         return extract_from_docx(file_path)
     elif file_path.endswith(".png", ".jpg", ".jpeg"):
         extract_from_image(file_path)
+        return None
 
     else:
         raise ValueError(f'Unsupported file type: {file_path}')

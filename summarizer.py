@@ -1,6 +1,8 @@
 import os
+import re
 import google.generativeai as genai
 from dotenv import load_dotenv
+from fpdf import FPDF
 
 load_dotenv()
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -19,3 +21,14 @@ Text:
 
     response = model.generate_content(prompt)
     return response.text.strip()
+
+def export_summary_pdf(summary_text):
+    # Removes emojis so Helvetica font doesn't crash
+    clean_text = re.sub(r'[^\x00-\x7F]+', ' ', summary_text)
+
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=12)
+    pdf.set_margins(15, 15, 15)
+    pdf.multi_cell(0, 8, clean_text)
+    return pdf.output()

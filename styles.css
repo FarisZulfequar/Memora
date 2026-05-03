@@ -1,0 +1,53 @@
+.stApp {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stButton > button {
+    background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-weight: 700;
+    width: 100%;
+}
+
+.stButton > button:hover {
+    transform: scale(1.03);
+    color: white;
+}
+
+.stDownloadButton > button {
+    background: linear-gradient(90deg, #43e97b 0%, green 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-weight: 700;
+    width: 100%;
+}
+
+h1 {
+    color: white !important;
+    font-size: 3rem !important;
+    text-align: center;
+}
+
+h2, h3, p, li, label {
+    color: white !important;
+}
+
+.stFileUploader {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1rem;
+    border: 2px dashed rgba(255, 255, 255, 0.4);
+}
+
+.stSuccess {
+    background: rgba(67, 233, 123, 0.2) !important;
+    border-radius: 12px;
+}
+
+.stError {
+    background: rgba(245, 87, 108, 0.2) !important;
+    border-radius: 12px;
+}

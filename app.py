@@ -2,6 +2,8 @@ import streamlit as st
 from extractor import extract_text
 import tempfile
 import os
+from fpdf import FPDF
+import re
 
 st.set_page_config(page_title="Study Buddy", page_icon="📚", layout="wide")
 
@@ -45,6 +47,26 @@ if "extracted_text" in st.session_state:
             st.subheader("📝 Summary")
             st.write(summary)
             st.session_state["summary"] = summary
+
+if "summary" in st.session_state:
+    def export_summary_pdf(summary_text):
+        # Strip emojis so Helvetica font doesn't crash
+        clean_text = re.sub(r'[^\x00-\x7F]+', ' ', summary_text)
+
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Helvetica", size=12)
+        pdf.set_margins(15, 15, 15)
+        pdf.multi_cell(0, 8, clean_text)
+        return pdf.output()
+
+    pdf_bytes = export_summary_pdf(st.session_state["summary"])
+    st.download_button(
+        label="📄 Download Summary as PDF",
+        data=bytes(pdf_bytes),
+        file_name="summary.pdf",
+        mime="application/pdf"
+    )
 
 if "summary" in st.session_state:
     st.divider()

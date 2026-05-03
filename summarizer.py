@@ -1,37 +1,21 @@
-from transformers import BartForConditionalGeneration, BartTokenizer
+import os
+import google.generativeai as genai
+from dotenv import load_dotenv
 
-tokenizer = BartTokenizer.from_pretrained("facebook/bart-large-cnn")
-model = BartForConditionalGeneration.from_pretrained("facebook/bart-large-cnn")
-
-def chunk_text(text, max_chars=1000):
-    """Split text into chunks so it fits within the model's token limit."""
-    sentences = text.split(". ")
-    chunks = []
-    current_chunk = ""
-
-    for sentence in sentences:
-        if len(current_chunk) + len(sentence) < max_chars:
-            current_chunk += sentence + ". "
-        else:
-            chunks.append(current_chunk.strip())
-            current_chunk = sentence + ". "
-
-    if current_chunk:
-        chunks.append(current_chunk.strip())
-
-    return chunks
-
+load_dotenv()
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 def summarize(text):
-    """Summarize a long piece of text by chunking it first."""
-    chunks = chunk_text(text)
-    summaries = []
+    """Summarize text using Gemini."""
+    prompt = f"""Summarize the following study material into clear, concise bullet points grouped by topic.
+- Only include key concepts, definitions, and important facts
+- Do not mention sources, authors, or where the content came from, and no 
+- Use simple language a student can understand
+- Group related points under short topic headings
 
-    for i, chunk in enumerate(chunks):
-        print(f"Summarizing chunk {i+1}/{len(chunks)}...")
-        inputs = tokenizer(chunk, return_tensors="pt", max_length=1024, truncation=True)
-        summary_ids = model.generate(inputs["input_ids"], max_length=150, min_length=40, do_sample=False)
-        result = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-        summaries.append(result)
+Text:
+{text}"""
 
-    return " ".join(summaries)
+    response = model.generate_content(prompt)
+    return response.text.strip()

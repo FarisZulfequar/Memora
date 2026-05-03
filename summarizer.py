@@ -3,6 +3,7 @@ import re
 import google.generativeai as genai
 from dotenv import load_dotenv
 from fpdf import FPDF
+import streamlit as st
 
 load_dotenv()
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -19,16 +20,45 @@ def summarize(text):
 Text:
 {text}"""
 
-    response = model.generate_content(prompt)
-    return response.text.strip()
+    try:
+        # Make sure there's actually text to summarize
+        if not text or not text.strip():
+            raise ValueError("No text to summarize")
+
+        response = model.generate_content(prompt)
+
+        # Make sure Gemini actually returned something
+        if not response.text:
+            raise ValueError("Gemini returned an empty response")
+
+        return response.text.strip()
+
+    except ValueError as e:
+        st.error(f"Summarization failed: {e}")
+        return ""
+    except Exception as e:
+        st.error(f"Something went wrong with summarization: {e}")
+        return ""
 
 def export_summary_pdf(summary_text):
     # Removes emojis so Helvetica font doesn't crash
-    clean_text = re.sub(r'[^\x00-\x7F]+', ' ', summary_text)
+    try:
+        # Remove emojis so Helvetica font doesn't crash
+        clean_text = re.sub(r'[^\x00-\x7F]+', ' ', summary_text)
 
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Helvetica", size=12)
-    pdf.set_margins(15, 15, 15)
-    pdf.multi_cell(0, 8, clean_text)
-    return pdf.output()
+        if not clean_text.strip():
+            raise ValueError("No text to export")
+
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Helvetica", size=12)
+        pdf.set_margins(15, 15, 15)
+        pdf.multi_cell(0, 8, clean_text)
+        return pdf.output()
+
+    except ValueError as e:
+        st.error(f"PDF export failed: {e}")
+        return None
+    except Exception as e:
+        st.error(f"Something went wrong exporting PDF: {e}")
+        return None

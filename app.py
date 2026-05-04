@@ -46,8 +46,10 @@ if uploaded_file is not None:
 
                 st.session_state["extracted_text"] = text
 
+
         except Exception as e:
-            st.error(f"Something went wrong with the extraction: {e}")
+            st.error(
+                f"Could not extract text. If you uploaded an image, make sure it's a photo of handwritten/printed text — not a slide or diagram. Error: {e}")
         finally:
             # Always clean up the temp file even if something crashes
             if os.path.exists(tmp_path):

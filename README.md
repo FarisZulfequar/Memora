@@ -2,6 +2,10 @@
 
 Memora is a student study tool that lets you upload your notes or textbook and automatically summarizes them and generates a quiz to test your knowledge.
 
+## Try it out!
+
+https://memora-d6yx7q2jhmqfu2rjm8djsw.streamlit.app/
+
 ## Features
 - Supports PDF, Word docs, and handwritten notes (images)
 - AI-powered summarization
